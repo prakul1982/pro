@@ -31,41 +31,53 @@ MONTH_TO_NUM = {
 }
 
 def get_stock_info(ticker_symbol):
-    """Fetches basic information for a given stock ticker using yfinance."""
-    print(f"Data_Fetcher: Attempting to get_stock_info for ticker: {ticker_symbol}") # New log
+    """Fetches basic information for a given stock ticker using yfinance and uses st.write for debugging."""
+    st.write(f"--- Debug: `get_stock_info` called for ticker: `{ticker_symbol}` ---")
     try:
         stock = yf.Ticker(ticker_symbol)
-        # It's good practice to check if .info exists and is not empty before accessing it
-        # yfinance sometimes returns an empty dict or None for .info if the ticker is problematic
-        # or if there are network issues.
         stock_information = None
+        st.write(f"Debug: `yf.Ticker('{ticker_symbol}')` object created.")
+
         try:
+            st.write(f"Debug: Attempting to fetch `stock.info` for `{ticker_symbol}`...")
             stock_information = stock.info
-            print(f"Data_Fetcher: Raw stock.info for {ticker_symbol}: {stock_information}") # New log
+            # We need to be careful about writing the entire stock_information dict if it's huge or complex.
+            # Let's try to write a limited version or specific keys for now.
+            if isinstance(stock_information, dict):
+                st.write(f"Debug: Raw `stock.info` type for `{ticker_symbol}`: {type(stock_information)}")
+                st.write(f"Debug: `stock.info` keys for `{ticker_symbol}`: {list(stock_information.keys()) if stock_information else 'No keys'}")
+                st.write(f"Debug: `stock.info['symbol']` if exists: {stock_information.get('symbol', 'Not found')}")
+                st.write(f"Debug: `stock.info['longName']` if exists: {stock_information.get('longName', 'Not found')}")
+            else:
+                st.write(f"Debug: Raw `stock.info` for `{ticker_symbol}` (not a dict or is None): {stock_information}")
+
         except Exception as e_info:
-            print(f"Data_Fetcher: Error directly calling stock.info for {ticker_symbol}: {e_info}") # New log
+            st.error(f"Debug: Error directly calling `stock.info` for `{ticker_symbol}`: {e_info}")
             return None
 
         if stock_information and isinstance(stock_information, dict) and stock_information.get('symbol'):
-            print(f"Data_Fetcher: Successfully retrieved info for {ticker_symbol}") # New log
+            st.success(f"Debug: Successfully retrieved and validated info for `{ticker_symbol}`.")
             return stock_information
         else:
-            print(f"Data_Fetcher: yfinance.Ticker('{ticker_symbol}').info was empty, invalid, or symbol missing.") # Modified log
-            print(f"Data_Fetcher: Content of stock_information: {stock_information}") # New log
-            
-            # Fallback attempt: try fetching history to see if ticker is valid at all
+            st.warning(f"Debug: `stock.info` for `{ticker_symbol}` was empty, invalid, or 'symbol' key missing.")
+            st.json(stock_information if stock_information is not None else "stock_information is None") # Display the problematic data as JSON
+
+            # Fallback attempt (optional, but can give clues)
+            st.write(f"Debug: Attempting fallback history check for `{ticker_symbol}`...")
             try:
                 hist_check = stock.history(period="1d")
                 if not hist_check.empty:
-                    print(f"Data_Fetcher: Fallback history check for {ticker_symbol} succeeded, but .info was problematic.")
+                    st.write(f"Debug: Fallback history check for `{ticker_symbol}` succeeded (got {len(hist_check)} rows), but `.info` was problematic.")
                 else:
-                    print(f"Data_Fetcher: Fallback history check for {ticker_symbol} also returned empty.")
+                    st.write(f"Debug: Fallback history check for `{ticker_symbol}` also returned empty.")
             except Exception as e_hist_check:
-                print(f"Data_Fetcher: Fallback history check for {ticker_symbol} failed: {e_hist_check}")
+                st.error(f"Debug: Fallback history check for `{ticker_symbol}` failed: {e_hist_check}")
             return None
+            
     except Exception as e:
-        print(f"Data_Fetcher: General exception in get_stock_info for {ticker_symbol}: {e}") # Modified log
+        st.error(f"Debug: General exception in `get_stock_info` for `{ticker_symbol}`: {e}")
         return None
+
 
 def get_stock_history(ticker_symbol, period="1y", interval="1d"):
     """Fetches historical market data using yfinance."""
