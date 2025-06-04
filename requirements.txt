@@ -1,6 +1,6 @@
 streamlit
 pandas
-yfinance
+yfinance==0.2.61
 plotly
 firebase-admin
 pytz
