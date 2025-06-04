@@ -26,7 +26,7 @@ except ImportError:
 
 # --- CONFIGURATION ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SERVICE_ACCOUNT_KEY_PATH = os.path.join(SCRIPT_DIR, "firebase-service-account-key.json")
+SERVICE_ACCOUNT_KEY_PATH = SERVICE_ACCOUNT_KEY_PATH = "firebase-service-account-key.json"
 # USER_ID is now imported or defined above
 
 # --- Firebase Initialization for this script ---
