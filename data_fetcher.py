@@ -31,52 +31,63 @@ MONTH_TO_NUM = {
 }
 
 def get_stock_info(ticker_symbol):
-    """Fetches basic information for a given stock ticker using yfinance and uses st.write for debugging."""
+    """
+    Fetches basic information for a given stock ticker using yfinance.
+    Uses st.write for debugging and tries history if .info fails.
+    """
     st.write(f"--- Debug: `get_stock_info` called for ticker: `{ticker_symbol}` ---")
+    stock_info_data = None
+    stock_object_created = False
+
     try:
         stock = yf.Ticker(ticker_symbol)
-        stock_information = None
         st.write(f"Debug: `yf.Ticker('{ticker_symbol}')` object created.")
+        stock_object_created = True
 
+        st.write(f"Debug: Attempting to fetch `stock.info` for `{ticker_symbol}`...")
         try:
-            st.write(f"Debug: Attempting to fetch `stock.info` for `{ticker_symbol}`...")
-            stock_information = stock.info
-            # We need to be careful about writing the entire stock_information dict if it's huge or complex.
-            # Let's try to write a limited version or specific keys for now.
-            if isinstance(stock_information, dict):
-                st.write(f"Debug: Raw `stock.info` type for `{ticker_symbol}`: {type(stock_information)}")
-                st.write(f"Debug: `stock.info` keys for `{ticker_symbol}`: {list(stock_information.keys()) if stock_information else 'No keys'}")
-                st.write(f"Debug: `stock.info['symbol']` if exists: {stock_information.get('symbol', 'Not found')}")
-                st.write(f"Debug: `stock.info['longName']` if exists: {stock_information.get('longName', 'Not found')}")
+            stock_info_data = stock.info
+            if isinstance(stock_info_data, dict) and stock_info_data.get('symbol'):
+                st.success(f"Debug: Successfully retrieved and validated `stock.info` for `{ticker_symbol}`.")
+                # st.json(stock_info_data) # Optionally uncomment to see the full .info if successful
+                return stock_info_data # Successfully got .info
             else:
-                st.write(f"Debug: Raw `stock.info` for `{ticker_symbol}` (not a dict or is None): {stock_information}")
-
+                st.warning(f"Debug: `stock.info` for `{ticker_symbol}` was empty, invalid, or 'symbol' key missing.")
+                st.json(stock_info_data if stock_info_data is not None else "`stock.info` returned None")
+                # Proceed to try history even if .info was problematic but didn't throw an exception
         except Exception as e_info:
-            st.error(f"Debug: Error directly calling `stock.info` for `{ticker_symbol}`: {e_info}")
-            return None
+            st.error(f"Debug: Error calling `stock.info` for `{ticker_symbol}`: {e_info}")
+            # .info failed, will proceed to try history if stock object was created
 
-        if stock_information and isinstance(stock_information, dict) and stock_information.get('symbol'):
-            st.success(f"Debug: Successfully retrieved and validated info for `{ticker_symbol}`.")
-            return stock_information
-        else:
-            st.warning(f"Debug: `stock.info` for `{ticker_symbol}` was empty, invalid, or 'symbol' key missing.")
-            st.json(stock_information if stock_information is not None else "stock_information is None") # Display the problematic data as JSON
+    except Exception as e_ticker:
+        st.error(f"Debug: Error creating `yf.Ticker('{ticker_symbol}')` object: {e_ticker}")
+        return None # Cannot proceed if Ticker object itself fails
 
-            # Fallback attempt (optional, but can give clues)
-            st.write(f"Debug: Attempting fallback history check for `{ticker_symbol}`...")
-            try:
-                hist_check = stock.history(period="1d")
-                if not hist_check.empty:
-                    st.write(f"Debug: Fallback history check for `{ticker_symbol}` succeeded (got {len(hist_check)} rows), but `.info` was problematic.")
-                else:
-                    st.write(f"Debug: Fallback history check for `{ticker_symbol}` also returned empty.")
-            except Exception as e_hist_check:
-                st.error(f"Debug: Fallback history check for `{ticker_symbol}` failed: {e_hist_check}")
+    # If .info failed or was insufficient, AND yf.Ticker object was created, try fetching history
+    if stock_object_created:
+        st.write(f"Debug: `stock.info` for `{ticker_symbol}` was problematic or failed. Attempting fallback: `stock.history(period=\"2d\")`...")
+        try:
+            hist_data = stock.history(period="2d")
+            if not hist_data.empty:
+                st.success(f"Debug: Fallback `stock.history(period=\"2d\")` for `{ticker_symbol}` SUCCEEDED and returned {len(hist_data)} rows.")
+                st.write("Debug: Sample of history data (first row):")
+                st.dataframe(hist_data.head(1))
+                # Even if history works, we don't have .info, so we can't return full stock_info_data.
+                # This just tells us if yfinance can talk to Yahoo for *some* data for this ticker.
+                # For the purpose of get_stock_info, we still indicate failure to get .info
+                st.warning(f"Debug: While history was fetched for {ticker_symbol}, `stock.info` was the primary goal and it failed. Returning None for `get_stock_info`.")
+                return None # Because the goal of get_stock_info is to get .info
+            else:
+                st.error(f"Debug: Fallback `stock.history(period=\"2d\")` for `{ticker_symbol}` returned an EMPTY DataFrame.")
+                return None
+        except Exception as e_hist:
+            st.error(f"Debug: Fallback `stock.history(period=\"2d\")` for `{ticker_symbol}` FAILED with error: {e_hist}")
             return None
-            
-    except Exception as e:
-        st.error(f"Debug: General exception in `get_stock_info` for `{ticker_symbol}`: {e}")
-        return None
+    
+    # Should only reach here if yf.Ticker failed initially (already returned None)
+    # or if .info was problematic and history wasn't attempted (which shouldn't happen with current logic)
+    st.error(f"Debug: `get_stock_info` for `{ticker_symbol}` did not successfully retrieve `stock.info`.")
+    return None
 
 
 def get_stock_history(ticker_symbol, period="1y", interval="1d"):
