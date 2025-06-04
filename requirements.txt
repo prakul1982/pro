@@ -1,0 +1,11 @@
+streamlit
+pandas
+yfinance
+plotly
+firebase-admin
+pytz
+gnews
+statsmodels
+beautifulsoup4
+selenium
+# webdriver-manager # Optional, if you use it directly
