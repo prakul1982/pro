@@ -32,17 +32,39 @@ MONTH_TO_NUM = {
 
 def get_stock_info(ticker_symbol):
     """Fetches basic information for a given stock ticker using yfinance."""
+    print(f"Data_Fetcher: Attempting to get_stock_info for ticker: {ticker_symbol}") # New log
     try:
         stock = yf.Ticker(ticker_symbol)
-        if hasattr(stock, 'info') and stock.info and stock.info.get('symbol'):
-            return stock.info
+        # It's good practice to check if .info exists and is not empty before accessing it
+        # yfinance sometimes returns an empty dict or None for .info if the ticker is problematic
+        # or if there are network issues.
+        stock_information = None
+        try:
+            stock_information = stock.info
+            print(f"Data_Fetcher: Raw stock.info for {ticker_symbol}: {stock_information}") # New log
+        except Exception as e_info:
+            print(f"Data_Fetcher: Error directly calling stock.info for {ticker_symbol}: {e_info}") # New log
+            return None
+
+        if stock_information and isinstance(stock_information, dict) and stock_information.get('symbol'):
+            print(f"Data_Fetcher: Successfully retrieved info for {ticker_symbol}") # New log
+            return stock_information
         else:
-            # Optional: could log this info instead of printing if a logging setup is in place
-            # print(f"INFO: yfinance.Ticker('{ticker_symbol}').info was empty or invalid.")
+            print(f"Data_Fetcher: yfinance.Ticker('{ticker_symbol}').info was empty, invalid, or symbol missing.") # Modified log
+            print(f"Data_Fetcher: Content of stock_information: {stock_information}") # New log
+            
+            # Fallback attempt: try fetching history to see if ticker is valid at all
+            try:
+                hist_check = stock.history(period="1d")
+                if not hist_check.empty:
+                    print(f"Data_Fetcher: Fallback history check for {ticker_symbol} succeeded, but .info was problematic.")
+                else:
+                    print(f"Data_Fetcher: Fallback history check for {ticker_symbol} also returned empty.")
+            except Exception as e_hist_check:
+                print(f"Data_Fetcher: Fallback history check for {ticker_symbol} failed: {e_hist_check}")
             return None
     except Exception as e:
-        # Optional: could log this error
-        # print(f"ERROR: yfinance.Ticker('{ticker_symbol}').info call failed: {e}")
+        print(f"Data_Fetcher: General exception in get_stock_info for {ticker_symbol}: {e}") # Modified log
         return None
 
 def get_stock_history(ticker_symbol, period="1y", interval="1d"):
