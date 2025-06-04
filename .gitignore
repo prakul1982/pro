@@ -1,1 +1,29 @@
-firebase-service-account-key.json
+# Firebase service account key
+pro/firebase-service-account-key.json
+firebase-service-account-key.json 
+
+# Python virtual environment
+venv/
+*.venv/
+env/
+ENV/
+
+# IDE and OS specific
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+*.log
+
+# CSV files that are frequently updated by the app (optional, if you want to always fetch fresh)
+# Consider if you want to version control the base CSVs or always generate/upload them.
+# For now, let's assume you want to version control the initial set.
+# pro/daily_fii_dii_nse_data.csv # Example if it's generated daily and large
+# pro/nifty_pe_ratio_live.csv # If fetched and overwritten often
+
+# ChromeDriver (if downloaded locally)
+chromedriver
+chromedriver.exe
