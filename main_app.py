@@ -1,4 +1,4 @@
-# dontknwo/main_app.py
+# dontknow/main_app.py
 import streamlit as st
 import pandas as pd
 
