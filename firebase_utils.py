@@ -38,7 +38,8 @@ def initialize_firebase_admin():
             return None 
         except Exception as e1: 
             st.error(f"Failed to initialize Firebase from secrets: {e1}. Trying local file...")
-            local_cred_path = os.path.join(os.path.dirname(__file__), "firebase-service-account-key.json")
+            repo_root = os.path.dirname(__file__)
+            local_cred_path = os.path.join(repo_root, "firebase-service-account-key.json")
             try:
                 if not os.path.exists(local_cred_path):
                     st.error(f"Local Firebase credentials file not found at: {local_cred_path}. Firebase NOT initialized.")
