@@ -1,4 +1,4 @@
-# dontknwo/firebase_utils.py
+# dontknow/firebase_utils.py
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore

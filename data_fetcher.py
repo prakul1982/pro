@@ -1,4 +1,4 @@
-# dontknwo/data_fetcher.py
+# dontknow/data_fetcher.py
 import yfinance as yf
 import pandas as pd
 # import requests # Removed: Not used in the provided functions
