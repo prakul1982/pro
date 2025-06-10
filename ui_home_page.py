@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go 
 from plotly.subplots import make_subplots 
-from data_fetcher import get_stock_info, get_stock_history # get_financial_statements was not used in this snippet
+from data_fetcher import get_stock_info, get_stock_history  # functions to retrieve stock info and history
 from utils import (
     safe_get, format_large_number, convert_df_to_csv, parse_date_from_string,
     calculate_rsi, calculate_macd, calculate_bollinger_bands
