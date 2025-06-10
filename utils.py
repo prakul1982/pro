@@ -42,9 +42,11 @@ def parse_date_from_string(date_str):
 
     try:
         dt_obj = pd.to_datetime(date_str, errors='raise')
+        if pd.isna(dt_obj):
+            return None
         return dt_obj.date()
     except (ValueError, TypeError):
-        pass 
+        pass
 
     match_obj_repr = re.match(r"datetime.date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)", date_str)
     if match_obj_repr:
